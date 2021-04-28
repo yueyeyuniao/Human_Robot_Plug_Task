@@ -1,0 +1,37 @@
+<launch>
+		
+	<include file="$(find kortex_driver)/launch/kortex_driver.launch" />
+	<!--<node name="state_relay" pkg="topic_tools" type="relay" -->
+	<!--		args="/my_gen3/joint_states joint_states"/> -->
+	<include file="$(find realsense2_camera)/launch/rs_rgbd.launch" />
+
+	<node pkg="tf" type="static_transform_publisher" 
+        	name="map_link_to_camera" 
+        	args="0.48 0.534 0.470 -1.57 0.0 0.0 /base_link /camera_top_link 100" />
+        <!-- <include file="$(find darknet_ros)/launch/darknet_ros_wire.launch" /> -->
+
+	<include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch" />
+	<node pkg="tf" type="static_transform_publisher"
+        	name="map_link_to_kinect_camera"
+        	args="-0.045 0.268 0.43 1.57 3.14 1.57 /base_link /kinect2_rgb_optical_frame 1" />
+
+	<node pkg="tf" type="static_transform_publisher" 
+        	name="base_link_to_endeffector_default" 
+        	args="0.0 0.0 0.0 -1.57 3.14 0.0 /base_link /endeffector_default 100" />	
+	
+	<node pkg="tf" type="static_transform_publisher" 
+        	name="bracelet_link_to_finger" 
+        	args="0.0 0.0 -0.21 0.0 0.0 1.57 /bracelet_link /finger 100" />
+
+	<node pkg="tf" type="static_transform_publisher" 
+        	name="bracelet_link_to_ee" 
+        	args="0.0 0.0 -0.055 0.0 0.0 3.14 /bracelet_link /end_effector_link 100" />
+
+	
+	<node pkg="tf" type="static_transform_publisher" 
+        	name="base_link_to_target" 
+        	args="0.64 0.0 0.4 -1.57 3.14 0.0 /base_link /Target_Socket 100" />
+
+
+
+</launch>
