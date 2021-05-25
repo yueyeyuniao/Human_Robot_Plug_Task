@@ -114,7 +114,13 @@ class gen3_traj_replay
         {
           if (ind == traj_array.rows()-1) continue;
           auto mat_next = pos_mat.row(ind+1);
-          auto dist = (time_increment.toSec() / 0.001); // decrease the last number to get valid trajectory
+
+          auto dist = (time_mat(ind+1, 0) / 0.001);
+          if(use_time){
+            auto dist = (time_mat(ind+1, 0)-time_mat(ind, 0) / 0.001); // decrease the last number to get valid trajectory
+          }
+          
+
           Eigen::MatrixXd dmat = (mat_next - mat) / dist;
 
           // if (dmat(0,0) < pow(10, -8) && dmat(0,1) < pow(10, -8) && dmat(0,2) < pow(10, -8) && dmat(0,3) < pow(10, -8) && dmat(0,4) < pow(10, -8) && dmat(0,5) < pow(10, -8) && dmat(0,6) < pow(10, -8))
@@ -292,29 +298,56 @@ class gen3_traj_replay
       std::vector<std::string> joint_names = {"joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6", "joint_7"};
       tesseract::TrajArray traj_array;
 
-      int rows = traj_msg_queue.points.size();
-      int cols = joint_names.size();
-      traj_array.resize(rows, cols);
+      bool use_sampled_time = false;
 
-      // Set the starting point of the robot at the current position
-      for (int j=0; j<cols; j++){
-        traj_array(0,j) = joint_states[joint_names[j]];
-      }
-
-      // Assign the joint trajectories
-      for (int i=1; i<rows; i++) 
-      {
-        for (int j=0; j<cols; j++){
-          traj_array(i,j) = traj_msg_queue.points[i].positions[j];
+      if (use_sampled_time){
+        int rows = traj_msg_queue.points.size();
+        int cols = joint_names.size()+1;
+        traj_array.resize(rows, cols);
+        
+        // Set the starting point of the robot at the current position
+        for (int j=0; j<cols-1; j++){
+          traj_array(0,j) = joint_states[joint_names[j]];
+        }
+        traj_array(0,cols-1) = 0.0;
+        
+        // Assign the joint trajectories
+        for (int i=1; i<rows; i++) 
+        {
+          for (int j=0; j<cols; j++){
+            if(j==cols-1){
+              traj_array(i,j) = traj_msg_queue.points[i].time_from_start.toSec();
+            }
+            traj_array(i,j) = traj_msg_queue.points[i].positions[j];
+          }
         }
       }
+      else{
+        int rows = traj_msg_queue.points.size();
+        int cols = joint_names.size();
+        traj_array.resize(rows, cols);
+        
+        // Set the starting point of the robot at the current position
+        for (int j=0; j<cols; j++){
+          traj_array(0,j) = joint_states[joint_names[j]];
+        }
+        
+        // Assign the joint trajectories
+        for (int i=1; i<rows; i++) 
+        {
+          for (int j=0; j<cols; j++){
+            traj_array(i,j) = traj_msg_queue.points[i].positions[j];
+          }
+        }
+      }
+      
       
       // std::cout << traj_array.row(1) << std::endl;
 
       bool result;
-
-      ros::Duration t(0.03); // need to modify
-      trajArrayToJointTrajectory_moveit(joint_names, traj_array, robot_model,false, true, t);
+      double sample_time = traj_msg_queue.points[1].time_from_start.toSec() - traj_msg_queue.points[0].time_from_start.toSec();
+      ros::Duration t(sample_time);
+      trajArrayToJointTrajectory_moveit(joint_names, traj_array, robot_model,use_sampled_time, true, t);
 
       ros::Publisher pub = nh.advertise<trajectory_msgs::JointTrajectory>("/smoothed_trajectory", 1000);
       ros::Rate loop_rate(5);
