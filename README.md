@@ -1,5 +1,5 @@
 # A Shared Control Method for Collaborative Human-Robot Plug Task (RAL+IROS 2021) [accepted]
-## [Paper link](https://drive.google.com/file/d/1uQL88Yt817UVHaE3_pDHkymOKtuL04JM/view?usp=sharing)
+## [Paper link](https://ieeexplore.ieee.org/document/9492826)
 ## [Video link](https://drive.google.com/file/d/1WQNfCKpU3OxEY8nxI3BN-lStOijAlSoF/view?usp=sharing)
 
 ## System overview:
